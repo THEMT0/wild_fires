@@ -36,8 +36,6 @@ window.onload = function() {
         fires[0] = new fire(game.world.randomX % 600 + 100, game.world.randomY % 400 + 100);
         game.physics.enable(fires[0], Phaser.Physics.ARCADE);
         
-        fires = game.add.group();
-        
         //starting animations
         player.animations.play('idleRight');
         fires[0].sprite.animations.play('burning');
@@ -99,7 +97,7 @@ window.onload = function() {
     function spreadFire(i) {
         fires[i].timer++;
         
-        if(fires[i].timer == 180) {
+        if(fires[i].timer == 120) {
             var rX = Math.random();
             var rY = Math.random();
             
