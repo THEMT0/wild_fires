@@ -8,11 +8,8 @@ window.onload = function() {
     
     var background;
     var player;
+    var fires = [];
     var i;
-    
-    var aFire;
-    var fireGroup = game.add.group();
-    var timer;
     
     function preload() {
         game.load.image( 'grass', 'assets/grass.png' );
@@ -36,14 +33,14 @@ window.onload = function() {
         player.body.collideWorldBounds = true;
         
         //Creating initial fire
-        //fireGroup[0] = new fire(game.world.randomX % 600 + 100, game.world.randomY % 400 + 100);
-        //game.physics.enable(fireGroup[0], Phaser.Physics.ARCADE);
-        aFire = game.add.sprite(game.world.randomX % 600 + 100, game.world.randomY % 400 + 100, 'fire');
-        fireGroup.add(aFire);
+        fires[0] = new fire(game.world.randomX % 600 + 100, game.world.randomY % 400 + 100);
+        game.physics.enable(fires[0], Phaser.Physics.ARCADE);
+        
+        fires = game.add.group();
         
         //starting animations
         player.animations.play('idleRight');
-        fireGroup.getChildAt(0).animations.play('burning');
+        fires[0].sprite.animations.play('burning');
         
         //no more page scrolling from keys
         this.game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.UP, Phaser.Keyboard.DOWN, Phaser.Keyboard.RIGHT, Phaser.Keyboard.LEFT]);
@@ -55,6 +52,11 @@ window.onload = function() {
         this.sprite = game.add.sprite(x, y, 'fire');
         this.sprite.animations.add('burning', [0, 1, 2, 3, 4], 8, true, true);
         this.timer = 0;
+    };
+    
+    function render(){
+        //game.debug.text('fires.length = ' + fires.length + '\nfires[0].timer = ' + fires[0].timer + "\ni = " + i, 20);
+        
     }
     
     function update() {
@@ -62,9 +64,9 @@ window.onload = function() {
         //game.physics.arcade.collide(player, fire, collisionHandler, null, this);
         moveChar();
         
-        //console.log("fireGroup.length = " + fireGroup.length + "\nfireGroup[0].timer = " + fireGroup[0].timer);
+        //console.log("fires.length = " + fires.length + "\nfires[0].timer = " + fires[0].timer);
             
-        for(i = 0; i <= fireGroup.length - 1; i++) {
+        for(i = 0; i <= fires.length - 1; i++) {
             spreadFire(i);
         }
     }
@@ -95,9 +97,9 @@ window.onload = function() {
     }
     
     function spreadFire(i) {
-        timer++;
+        fires[i].timer++;
         
-        if(timer == 24) {
+        if(fires[i].timer == 180) {
             var rX = Math.random();
             var rY = Math.random();
             
@@ -111,26 +113,25 @@ window.onload = function() {
             
                 else {rX = 0; rY = 1.01}
             
+            fires[fires.length] = new fire((fires[i].sprite.x + 50 * rX), (fires[i].sprite.y + 50 * rY));
+            game.physics.enable(fires[fires.length - 1], Phaser.Physics.ARCADE);
+            fires[fires.length - 1].sprite.animations.play('burning');
+            fires[i].timer = 0;
             
-            aFire = game.add.sprite((fireGroup.getChildAt(i).x + 50 * rX), (fireGroup.getChildAt(i).y + 50 * rY));
-            fireGroup.add(aFire);
-            fireGroup.getChildAt(fireGroup.length - 1).animations.play('burning');
-            timer = 0;
-            
-            for(var k = 0; k <= fireGroup.length - 1; k++) {
-                overlap(fireGroup.getChildAt(k), fireGroup.getChildAt(fireGroup.length - 1));
+            for(var k = 0; k <= fires.length - 1; k++) {
+                overlap(fires[k], fires[fires.length - 1], k);
             }
         }
     }
     
-    function overlap(oldFire, newFire) {
+    function overlap(oldFire, newFire, j) {
 //        if((newFire.sprite.x >= oldFire.x && newFire.sprite.x <= oldFire.x + 49) && (newFire.sprite.y >= oldFire.sprite.y && newFire.sprite.y <= oldFire.sprite.y + 49)) {
         console.log(oldFire, newFire);
-        var test = (game.physics.arcade.overlap(fireGroup))
+        var test = (game.physics.arcade.collide(oldFire.sprite, newFire.sprite))
         
         if(test){
-            fireGroup.getChildAt(fireGroup.length - 1).destroy();
-            fireGroup.removeChildAt(fireGroup.fireGroup.length - 1);
+            fires[fires.length - 1].sprite.destroy();
+            fires.splice(fires.length - 1, 1);
             console.log("Somebody dead yo");
         }
     }
